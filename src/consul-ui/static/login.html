@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prometheus 配置管理</title>
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/res/css/font.css">
+    <link rel="stylesheet" href="/static/res/css/weadmin.css">
+    <script type="text/javascript" src="/static/lib/layui/layui.js" charset="utf-8"></script>
+
+</head>
+<body class="login-bg">
+
+<div class="login">
+    <div class="message">Prometheus 管理登录</div>
+    <div id="darkbannerwrap"></div>
+
+    <form method="post" class="layui-form" >
+        <input name="username" placeholder="用户名"  type="text" lay-verify="required" class="layui-input" >
+        <hr class="hr15">
+        <input name="password" lay-verify="required" placeholder="密码"  type="password" class="layui-input">
+        <hr class="hr15">
+        <input class="loginin" value="登录" lay-submit lay-filter="login" style="width:100%;" type="submit">
+        <hr class="hr20" >
+    </form>
+</div>
+
+<script type="text/javascript">
+
+    layui.extend({
+        admin: '{/}/static/res/js/admin'
+    });
+    layui.use(['form','admin','jquery'], function(){
+        var form = layui.form,
+            $ = layui.jquery,
+            admin = layui.admin;
+        form.on('submit(login)', function(data){
+            $.ajax({
+                type:"POST",
+                url:"/api/login",
+                data:data.field,
+                dataType:"json",
+                success:function (data) {
+                    if(data.code==0){
+                        localStorage.setItem('login', 1);
+                        window.location.href = "/";
+                    }else{
+                        localStorage.setItem('login', 0);
+                        layer.alert("登录失败", {icon: 5},function (index) {
+                            layer.close(index);
+                        });
+                    }
+                },
+                error:function (err) {
+                    localStorage.setItem('login', 0);
+                    layer.alert("登录失败", {icon: 5},function (index) {
+                        layer.close(index);
+                    });
+                }
+            });
+            return false;
+        });
+    });
+</script>
+<!-- 底部结束 -->
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+	"status": 0,
+	"msg": "ok",
+	"data": [{
+			"id": 1,
+			"name": "metric服务",
+			"icon": "&#xe6b8;",
+			"url": "",
+			"children": [{
+				"id": 2,
+				"name": "metric服务列表",
+				"icon": "",
+				"url": "./static/metrics.html"
+			}]
+		},
+		{
+			"id": 8,
+			"name": "alarm管理",
+			"icon": "&#xe705;",
+			"url": "",
+			"children": [{
+				"id": 9,
+				"name": "alarm列表",
+				"icon": "",
+				"url": "./api/alarms"
+			}]
+		}
+	]
+}
