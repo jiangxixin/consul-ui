@@ -20,76 +20,90 @@
 <div class="weadmin-body">
     <form class="layui-form">
         <div class="layui-form-item">
-            <label for="username" class="layui-form-label">
-                <span class="we-red">*</span>服务名称
+            <label for="service_name" class="layui-form-label">
+                <span class="we-red">*</span>ServiceName
             </label>
-            <div class="layui-input-inline">
-                <input type="text" id="service_name" name="service_name" required="" lay-verify="required"
+            <div class="layui-input-block">
+                <input type="text" id="service_name" name="Service" required="" lay-verify="required"
                        autocomplete="off" class="layui-input">
-            </div>
-            <div class="layui-form-mid layui-word-aux">
-                <span class="we-red">*</span>服务名称
             </div>
         </div>
         <div class="layui-form-item">
-            <label for="phone" class="layui-form-label">
-                <span class="we-red">*</span>服务HOST
-            </label>
-            <div class="layui-input-inline">
-                <input type="text" id="host" name="host" required="" lay-verify="required"
-                       autocomplete="off" class="layui-input">
-            </div>
-            <div class="layui-form-mid layui-word-aux">
+            <label for="host" class="layui-form-label">
                 <span class="we-red">*</span>HOST
+            </label>
+            <div class="layui-input-block">
+                <input type="text" id="host" name="Address" required="" lay-verify="required"
+                       autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
-            <label for="L_email" class="layui-form-label">
+            <label for="port" class="layui-form-label">
                 <span class="we-red">*</span>PORT
             </label>
-            <div class="layui-input-inline">
-                <input type="text" id="port" name="port" required="" lay-verify="number"
+            <div class="layui-input-block">
+                <input type="text" id="port" name="Port" required="" lay-verify="number"
                        autocomplete="off" class="layui-input">
-            </div>
-            <div class="layui-form-mid layui-word-aux">
-                <span class="we-red">*</span>
             </div>
         </div>
         <div class="layui-form-item">
-            <label for="L_pass" class="layui-form-label">
-                <span class="we-red">*</span>标签
+            <label for="tag" class="layui-form-label">
+                <span class="we-red">*</span>Tags
             </label>
-            <div class="layui-input-inline">
-                <input type="text" id="tag" name="tag" required="" lay-verify="required"
-                       autocomplete="off" class="layui-input">
+            <div class="layui-input-block">
+                <div id="tags">
+                <input type="text" id="inputTags" name="Tags" placeholder="回车生成标签" autocomplete="off">
+                </div>
             </div>
         </div>
         <div class="layui-form-item">
-            <label for="L_pass" class="layui-form-label">
-                <span class="we-red">*</span>路径
+            <label for="path" class="layui-form-label">
+                <span class="we-red">*</span>MetricsPath
             </label>
-            <div class="layui-input-inline">
-                <input type="text" id="path" name="path" required="" lay-verify="required"
-                       autocomplete="off" class="layui-input">
+            <div class="layui-input-block">
+                <select id="path" name="path">
+                    <option>/metrics</option>
+                </select>
             </div>
         </div>
         <div class="layui-form-item">
-            <label for="L_repass" class="layui-form-label"></label>
-            <button  class="layui-btn" lay-filter="add" lay-submit="">增加</button>
+            <label for="tag" class="layui-form-label">
+                <span class="we-red">*</span>Enabled
+            </label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="enable" checked="" lay-skin="switch" lay-text="Enable|Disable">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button  class="layui-btn" lay-filter="add" lay-submit="">Add</button>
         </div>
     </form>
 </div>
 <script type="text/javascript" src="/static/lib/layui/layui.js" charset="utf-8"></script>
 <script type="text/javascript">
-    layui.use(['form','layer','jquery'], function(){
+    layui.extend({
+        inputTags: '{/}/static/res/js/inputTags',
+        insertSelect:'{/}/static/res/js/insertSelect'
+    });
+    layui.use(['form','layer','jquery','inputTags','insertSelect'], function(){
         var form = layui.form,
             $ = layui.jquery,
+            inputTags = layui.inputTags,
+            insertSelect = layui.insertSelect,
             layer = layui.layer;
         form.render();
-
+        var thisTag = inputTags.render({
+            elem:'#inputTags',
+            content: ['prometheus'],
+            done: function(value){
+                console.log(value)
+            }
+        });
+        insertSelect.render({ elem: '#path', data: ['/metrics'] });
 
         //监听提交
         form.on('submit(add)', function(data){
+            data.field.Tags = thisTag.config.content;
             $.ajax({
                type:"POST",
                 url:"/api/metrics",

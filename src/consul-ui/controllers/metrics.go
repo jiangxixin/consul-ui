@@ -76,8 +76,23 @@ func (c *MetricsController) Post() {
 		checked = false
 		result.Code = 401
 	}
-	tag := c.GetString("tag")
-	if tag == "" {
+	path := c.GetString("path")
+	if path == "" {
+		checked = false
+		result.Code = 401
+	}
+	enable := c.GetString("enable")
+	if enable == "" {
+		enable = "off"
+	} else {
+		enable = "on"
+	}
+	var meta map[string]string
+	meta = make(map[string]string)
+	meta["metrics_path"] = path
+	meta["enable"] = enable
+	tags := c.GetStrings("tag[]")
+	if len(tags) == 0 {
 		checked = false
 		result.Code = 401
 	}
@@ -101,7 +116,8 @@ func (c *MetricsController) Post() {
 	registration.ID = serviceName
 	registration.Name = serviceName
 	registration.Port = portNum
-	registration.Tags = []string{tag}
+	registration.Tags = tags
+	registration.Meta = meta
 	registration.Address = host
 	err = client.Agent().ServiceRegister(registration)
 	if err != nil {

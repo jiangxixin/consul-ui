@@ -29,7 +29,12 @@
 								<p>prometheus 的配置文件如下</p>
 <pre class="layui-code">
 scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'prometheus'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
     static_configs:
     - targets: ['localhost:9090']
 
@@ -37,10 +42,13 @@ scrape_configs:
     consul_sd_configs:
     - server:   '192.168.0.200:8500'
       services: []
+
     relabel_configs:
     - source_labels: [__meta_consul_tags]
       regex: .*test.*
       action: keep
+    - source_labels: [__meta_consul_service_metadata_metrics_path]
+      target_label: __metrics_path__
 </pre>
 							</div>
 						</div>

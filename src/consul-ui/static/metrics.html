@@ -23,16 +23,20 @@
 <table class="layui-table" lay-data="{url:'/api/metrics', page:true, id:'metrics'}" lay-filter="metrics">
     <thead>
     <tr>
-        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
         <th lay-data="{field:'ID', width:120, sort: true, fixed: true}">ID</th>
         <th lay-data="{field:'Service', width:120 , sort: true}">服务名称</th>
         <th lay-data="{field:'Address',sort: true}">服务IP</th>
         <th lay-data="{field:'Port', width:80}">端口</th>
         <th lay-data="{field:'Tags'}">标签</th>
+        <th lay-data="{field:'Meta.metrics_path'}">路径</th>
+        <th lay-data="{field:'Meta.enable',width:120,templet: '#switchTpl'}">状态</th>
         <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barCtrl'}"></th>
     </tr>
     </thead>
 </table>
+<script type="text/html" id="switchTpl">
+    <input type="checkbox" name="enable" value="{{d.Meta.enable}}" lay-skin="switch" lay-filter="switchEnable" lay-text="Enable|Disable" {{ d.Meta.enable == 'on' ? 'checked' : '' }}>
+</script>
 <script type="text/html" id="barCtrl">
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
@@ -41,7 +45,45 @@
 <script>
     layui.use(['table','jquery'], function(){
         var table = layui.table,
+            form = layui.form,
             $ = layui.jquery;
+        form.on('switch(switchEnable)', function(obj){
+            // 获取当前控件
+            var selectIfKey=obj.othis;
+            // 获取当前所在行
+            var parentTr = selectIfKey.parents("tr");
+            // 获取当前所在行的索引
+            var rowData = {};
+            var tdArrObj = $(parentTr).find("td");
+            $.each(tdArrObj, function (index_1, tdObj) {
+               var td_field = $(tdObj).data("field");
+                rowData[td_field] = $($(tdObj).html()).text();
+              });
+            layer.confirm('真的修改么', function(index){
+                $.ajax({
+                    type:"POST",
+                    url:"/api/metrics",
+                    data:rowData,
+                    dataType:"json",
+                    success:function (data) {
+                        if(data.code == 0){
+                            layer.msg('已修改!', {
+                                icon: 1,
+                                time: 1000
+                            })
+                        }else{
+                            layer.alert("修改失败", {icon: 5},function (index) {
+                                layer.close(index);
+                            });
+                        }
+                    },
+                    error:function (err) {
+
+                    }
+                });
+
+            });
+        });
         table.on('tool(metrics)', function(obj){ //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             var data = obj.data //获得当前行数据
                 ,layEvent = obj.event; //获得 lay-event 对应的值
