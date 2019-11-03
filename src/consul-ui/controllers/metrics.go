@@ -4,8 +4,8 @@ import (
 	"consul-ui/models"
 	"github.com/astaxie/beego"
 	consulapi "github.com/hashicorp/consul/api"
-	"log"
 	"strconv"
+	"strings"
 )
 
 type MetricsController struct {
@@ -29,7 +29,11 @@ func (c *MetricsController) Delete() {
 	config.Address = beego.AppConfig.String("consul_host")
 	client, err := consulapi.NewClient(config)
 	if err != nil {
-		log.Fatal("consul client error : ", err)
+		result.Code = 401
+		result.Msg = err.Error()
+		c.Data["json"] = result
+		c.ServeJSON()
+		return
 	}
 	err = client.Agent().ServiceDeregister(id)
 	if err != nil {
@@ -49,7 +53,11 @@ func (c *MetricsController) Get() {
 	config.Address = beego.AppConfig.String("consul_host")
 	client, err := consulapi.NewClient(config)
 	if err != nil {
-		log.Fatal("consul client error : ", err)
+		result.Code = 401
+		result.Msg = err.Error()
+		c.Data["json"] = result
+		c.ServeJSON()
+		return
 	}
 	services, err := client.Agent().Services()
 	result.Code = 0
@@ -61,41 +69,42 @@ func (c *MetricsController) Get() {
 func (c *MetricsController) Post() {
 	result := new(models.JSONResult)
 	checked := true
-	serviceName := c.GetString("service_name")
+	serviceName := strings.Trim(c.GetString("Service"), " ")
 	if serviceName == "" {
 		checked = false
 		result.Code = 401
 	}
-	host := c.GetString("host")
+	host := strings.Trim(c.GetString("Address"), " ")
 	if host == "" {
 		checked = false
 		result.Code = 401
 	}
-	port := c.GetString("port")
+	port := strings.Trim(c.GetString("Port"), " ")
 	if port == "" {
 		checked = false
 		result.Code = 401
 	}
-	path := c.GetString("path")
+	path := strings.Trim(c.GetString("Path"), " ")
 	if path == "" {
 		checked = false
 		result.Code = 401
 	}
-	enable := c.GetString("enable")
-	if enable == "" {
+	enable := strings.Trim(c.GetString("Enable"), " ")
+	if enable == "" || (enable != "on" && enable != "Enable") {
 		enable = "off"
 	} else {
 		enable = "on"
 	}
 	var meta map[string]string
 	meta = make(map[string]string)
-	meta["metrics_path"] = path
-	meta["enable"] = enable
-	tags := c.GetStrings("tag[]")
-	if len(tags) == 0 {
+	meta["Path"] = path
+	meta["Enable"] = enable
+	tagStr := strings.Trim(c.GetString("Tags"), " ")
+	if tagStr == "" {
 		checked = false
 		result.Code = 401
 	}
+	tags := strings.Split(tagStr, ",")
 	portNum, err := strconv.Atoi(port)
 	if err != nil {
 		checked = false
@@ -110,7 +119,11 @@ func (c *MetricsController) Post() {
 	config.Address = beego.AppConfig.String("consul_host")
 	client, err := consulapi.NewClient(config)
 	if err != nil {
-		log.Fatal("consul client error : ", err)
+		result.Code = 401
+		result.Msg = err.Error()
+		c.Data["json"] = result
+		c.ServeJSON()
+		return
 	}
 	registration := new(consulapi.AgentServiceRegistration)
 	registration.ID = serviceName

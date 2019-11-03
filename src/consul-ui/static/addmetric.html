@@ -61,7 +61,7 @@
                 <span class="we-red">*</span>MetricsPath
             </label>
             <div class="layui-input-block">
-                <select id="path" name="path">
+                <select id="path" name="Path">
                     <option>/metrics</option>
                 </select>
             </div>
@@ -71,7 +71,7 @@
                 <span class="we-red">*</span>Enabled
             </label>
             <div class="layui-input-block">
-                <input type="checkbox" name="enable" checked="" lay-skin="switch" lay-text="Enable|Disable">
+                <input type="checkbox" name="Enable" checked="" lay-skin="switch" lay-text="Enable|Disable">
             </div>
         </div>
         <div class="layui-form-item">
@@ -103,7 +103,7 @@
 
         //监听提交
         form.on('submit(add)', function(data){
-            data.field.Tags = thisTag.config.content;
+            data.field.Tags = thisTag.config.content.toString();
             $.ajax({
                type:"POST",
                 url:"/api/metrics",

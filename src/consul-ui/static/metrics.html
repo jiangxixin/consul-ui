@@ -17,25 +17,30 @@
 </head>
 
 <body>
-<div class="weadmin-block">
-    <button class="layui-btn" onclick="WeAdminShow('添加metric','/static/addmetric.html')"><i class="layui-icon"></i>添加</button>
-</div>
-<table class="layui-table" lay-data="{url:'/api/metrics', page:true, id:'metrics'}" lay-filter="metrics">
+<table class="layui-table" lay-data="{url:'/api/metrics', page:true, id:'metrics',toolbar:'#toolbarCtrl'}" lay-filter="metrics" id="metrics">
     <thead>
     <tr>
-        <th lay-data="{field:'ID', width:120, sort: true, fixed: true}">ID</th>
-        <th lay-data="{field:'Service', width:120 , sort: true}">服务名称</th>
-        <th lay-data="{field:'Address',sort: true}">服务IP</th>
+        <th lay-data="{field:'ID', width:120, fixed: true}">ID</th>
+        <th lay-data="{field:'Service', width:120 }">服务名称</th>
+        <th lay-data="{field:'Address'}">服务IP</th>
         <th lay-data="{field:'Port', width:80}">端口</th>
         <th lay-data="{field:'Tags'}">标签</th>
-        <th lay-data="{field:'Meta.metrics_path'}">路径</th>
-        <th lay-data="{field:'Meta.enable',width:120,templet: '#switchTpl'}">状态</th>
+        <th lay-data="{field:'Path',templet: '#pathTpl'}">路径</th>
+        <th lay-data="{field:'Enable',width:120,templet: '#switchTpl'}">状态</th>
         <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barCtrl'}"></th>
     </tr>
     </thead>
 </table>
+<script type="text/html" id="pathTpl">
+    <div>{{d.Meta.Path}}</div>
+</script>
 <script type="text/html" id="switchTpl">
-    <input type="checkbox" name="enable" value="{{d.Meta.enable}}" lay-skin="switch" lay-filter="switchEnable" lay-text="Enable|Disable" {{ d.Meta.enable == 'on' ? 'checked' : '' }}>
+    <input type="checkbox" name="Enable" value="{{d.Meta.Enable}}" lay-skin="switch" lay-filter="switchEnable" lay-text="Enable|Disable" {{ d.Meta.Enable == 'on' ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="toolbarCtrl">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="add">增加</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" id="uploadMetrics">导入</a>
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="downTpl">下载模板</a>
 </script>
 <script type="text/html" id="barCtrl">
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
@@ -43,9 +48,14 @@
 <script type="text/javascript" src="/static/lib/layui/layui.js" charset="utf-8"></script>
 <script type="text/javascript" src="/static/res/js/admin.js" charset="utf-8"></script>
 <script>
-    layui.use(['table','jquery'], function(){
+    layui.extend({
+        tableFilter: '{/}/static/res/js/tableFilter'
+    });
+    layui.use(['table','jquery','tableFilter','upload'], function(){
         var table = layui.table,
             form = layui.form,
+            tableFilter = layui.tableFilter,
+            upload = layui.upload,
             $ = layui.jquery;
         form.on('switch(switchEnable)', function(obj){
             // 获取当前控件
@@ -84,6 +94,15 @@
 
             });
         });
+        table.on('toolbar(metrics)',function (obj) {
+            layEvent = obj.event;
+            if(layEvent === 'add'){
+                WeAdminShow('添加metric','/static/addmetric.html');
+            }
+            if(layEvent === 'downTpl'){
+               window.open('/static/template.xlsx','_blank');
+            }
+        });
         table.on('tool(metrics)', function(obj){ //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
             var data = obj.data //获得当前行数据
                 ,layEvent = obj.event; //获得 lay-event 对应的值
@@ -113,6 +132,36 @@
                     });
 
                 });
+            }
+        });
+        tableFilter.render({
+           'elem':'#metrics',
+            'mode':'local',
+            'filters':[
+                {'field':'Service','type':'input'},
+                {'field':'Address','type':'input'},
+                {'field':'Tags','type':'input'}
+            ],
+            'done':function (filters) {
+                
+            }
+        });
+        upload.render({
+           'elem':'#uploadMetrics',
+            'url':'/api/upload',
+            'accept':'file',
+            'progress':function (n) {
+
+            },
+            'done':function (res) {
+               if(res.code!=0){
+                   layer.msg(res.msg, {
+                       icon: 1,
+                       time: 1000
+                   })
+               }else{
+                   window.parent.location.reload();
+               }
             }
         });
     })
